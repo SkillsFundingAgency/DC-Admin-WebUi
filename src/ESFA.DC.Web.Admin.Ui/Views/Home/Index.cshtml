@@ -1,0 +1,232 @@
+﻿@page
+@{
+    //ViewData["Title"] = "Home page";
+}
+
+
+<link href="~/min/styles/jquery-ui.min.css" rel="stylesheet" />
+<link href="~/min/styles/jsgrid-theme.min.css" rel="stylesheet" />
+<link href="~/min/styles/jsgrid.min.css" rel="stylesheet" />
+
+
+@section Scripts
+    {
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
+            asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+            asp-fallback-test="window.jQuery"
+            crossorigin="anonymous"
+            integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
+    </script>
+    <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
+            asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"
+            crossorigin="anonymous"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
+    </script>
+    <script src="~/min/scripts/jsgrid.min.js" asp-append-version="true"></script>
+    <script src="~/min/scripts/chart.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/min/scripts/jquery-ui.min.js" asp-append-version="true"></script>
+    <script src="~/min/scripts/jquery.validate.min.js" asp-append-version="true"></script>
+    <script src="~/min/scripts/additional-methods.min.js" asp-append-version="true"></script>
+
+    <environment include="Development">
+        <script src="~/js/dashboard.js" asp-append-version="true"></script>
+        <script src="~/js/index.js" asp-append-version="true"></script>
+        <script src="~/lib/math.js" asp-append-version="true"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/min/scripts/site.min.js" asp-append-version="true"></script>
+        <script src="~/min/scripts/math.min.js" asp-append-version="true"></script>
+    </environment>
+}
+
+<div>
+    <div>
+        <input type="checkbox" id="autoRefresh" onchange="autoRefresh">
+        <label for="autoRefresh">Auto refresh</label>
+    </div>
+
+
+    <div class="col-lg-3">
+        <h2>Jobs Status</h2>
+        <table class="table table-bordered table-striped">
+            <thead style="background-color: black; color: white">
+                <tr>
+                    <td>Status</td>
+                    <td>Count</td>
+                </tr>
+            </thead>
+            <tr class="table-striped">
+                <td>Total</td>
+                <td id="total"></td>
+            </tr>
+            <tr style="background-color: #C6E9F5; color: black">
+                <td>Ready</td>
+                <td id="readyTotal"></td>
+            </tr>
+            <tr style="background-color: #BFED91;">
+                <td>Completed</td>
+                <td id="completedTotal"></td>
+            </tr>
+            <tr style="background-color: #FFC300;">
+                <td>Paused</td>
+                <td id="pausedTotal"></td>
+            </tr>
+            <tr style="background-color: #109ABD;">
+                <td>Moved For processing</td>
+                <td id="movedForProcessingTotal"></td>
+            </tr>
+            <tr style="background-color: #37b6b5;">
+                <td>Processing</td>
+                <td id="processingTotal"></td>
+            </tr>
+            <tr style="background-color: #E6BB77;">
+                <td>FailedRetry</td>
+                <td id="failedRetryTotal"></td>
+            </tr>
+            <tr style="background-color: #F55840;">
+                <td>Failed</td>
+                <td id="failedTotal"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-lg-3">
+        <h2>Jobs Timings</h2>
+        <table class="table table-bordered table-striped">
+            <thead style="background-color: black; color: white">
+                <tr>
+                    <td>Type</td>
+                    <td>Time</td>
+                </tr>
+            </thead>
+            <tr class="table-striped">
+                <td>Minimum processing time</td>
+                <td id="minProcessTime"></td>
+            </tr>
+            <tr>
+                <td>Maximum Processing Time</td>
+                <td id="maxProcessTime"></td>
+            </tr>
+            <tr style="">
+                <td>Mean Processing Time</td>
+                <td id="meanProcessTime"></td>
+            </tr>
+            <tr>
+                <td>Median Processing Time</td>
+                <td id="medianProcessTime"></td>
+            </tr>
+
+
+
+        </table>
+        <table class="table table-bordered table-striped">
+            <thead style="background-color: black; color: white">
+                <tr>
+                    <td>Type</td>
+                    <td>Count</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>Successful ILR files</td>
+                <td id="ilrTotal"></td>
+            </tr>
+            <tr>
+                <td>Successful Reference jobs</td>
+                <td id="refTotal"></td>
+            </tr>
+            <tr>
+                <td>Retried jobs</td>
+                <td id="retriedTotal"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-lg-6">
+        <div style="height: 300px">
+            <canvas id="stats"></canvas>
+        </div>
+
+    </div>
+    <div class="col-lg-12">
+        <input type="button" id="pauseQueue" value="Pause Queue Processing" />
+    </div>
+    <div class="col-lg-12">
+        <h2>Jobs List</h2>
+
+        <div id="jsGrid">
+        </div>
+
+        <div id="detailsDialog" class="ui-dialog-content ui-widget-content" style="width: auto; min-height: 93px; max-height: none; height: auto;">
+            <form id="detailsForm" novalidate="novalidate">
+
+                <div class="form-group row">
+                    <label for="jobType" class="col-sm-3 col-form-label">Job Type</label>
+                    <div class="col-sm-9">
+                        <select id="jobType">
+                            <option value="1">ILR</option>
+                            <option value="2">Reference Data</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ukprn" class="col-sm-3 col-form-label">Ukprn</label>
+                    <div class="col-sm-9">
+                        <input id="ukprn" type="number" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="fileName" class="col-sm-3 col-form-label">File name</label>
+                    <div class="col-sm-9">
+                        <input id="fileName" type="text" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="status" class="col-sm-3 col-form-label">Status</label>
+                    <div class="col-sm-9">
+                        <select id="status">
+                            <option value="1">Ready</option>
+                            <option value="2">Moved For processing</option>
+                            <option value="3">Processing</option>
+                            <option value="4">Completed</option>
+                            <option value="5">FailedRetry</option>
+                            <option value="6">Failed</option>
+                            <option value="7">Paused</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="priority" class="col-sm-3 col-form-label">Priority</label>
+                    <div class="col-sm-9">
+                        <select id="priority">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" id="jobId" />
+                <input type="hidden" id="rowVersion" />
+
+                <div class="form-group row">
+                    <label for="status" class="col-sm-3 col-form-label"></label>
+                    <div class="col-sm-9">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div>
+    <div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div>
+
+    <input type="hidden" id="url" value=@ViewBag.Url />
+
+</div>
+
