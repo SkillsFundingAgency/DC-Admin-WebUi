@@ -18,7 +18,8 @@ $(function () {
         { Name: "Completed", Id: 4 },
         { Name: "FailedRetry", Id: 5 },
         { Name: "Failed", Id: 6 },
-        { Name: "Paused", Id: 7 }
+        { Name: "Paused", Id: 7 },
+        { Name: "Waiting", Id: 8 }
     ];
 
     var jobTypes = [
@@ -51,7 +52,7 @@ $(function () {
         controller: {
             loadData: function(filter) {
                 return $.ajax({
-                    url: baseApiUrl + "/job",
+                    url: baseApiUrl + "/job/period/ILR1819",
                     dataType: "json"
                 });
             },
@@ -87,23 +88,59 @@ $(function () {
 
             {
                 type: "control",
-                modeSwitchButton: false,
-                editButton: true,
-                headerTemplate: function () {
-                    return $("<button>").attr("type", "button").text("Add")
-                        .on("click", function () {
-                            showDetailsDialog("Add", {});
-                        });
-                },
+                //modeSwitchButton: false,
+                editButton: false,
                 itemTemplate: function (value, item) {
-                    var $result = $([]);
+                    var $iconPencil = $("<i>").attr({ class: "glyphicon glyphicon-repeat" });
+                    var $iconTrash = $("<i>").attr({ class: "glyphicon glyphicon-trash" });
 
+                    var $customEditButton = $("<button>")
+                        .attr({ class: "btn btn-default btn-xs" })
+                        .attr({ role: "button" })
+                        .attr({ title: "Retry" })
+                        .attr({ id: "btn-edit-" + item.id })
+                        .click(function (e) {
+                            updateStatusClient(item);
+                            e.stopPropagation();
+                        })
+                        .append($iconPencil);
+                    var $customDeleteButton = $("<button>")
+                        .attr({ class: "btn btn-danger btn-xs" })
+                        .attr({ role: "button" })
+                        .attr({ title: jsGrid.fields.control.prototype.deleteButtonTooltip })
+                        .attr({ id: "btn-delete-" + item.id })
+                        .click(function (e) {
+                            deleteJob(item);
+                            e.stopPropagation();
+                        })
+                        .append($iconTrash);
+
+                    var addedElement = $("<div>").attr({ class: "btn-toolbar" });
+
+                    if (item.status === 5 || item.status === 6 ) {
+                        addedElement.append($customEditButton);
+                        }
                     if (item.status === 1) {
-                        $result = $result.add(this._createDeleteButton(item));
+                        addedElement.append($customDeleteButton);
                     }
 
-                    return $result;
+                    return addedElement;
                 }
+                //headerTemplate: function () {
+                //    return $("<button>").attr("type", "button").text("Add")
+                //        .on("click", function () {
+                //            showDetailsDialog("Add", {});
+                //        });
+                //},
+                //itemTemplate: function (value, item) {
+                //    var $result = $([]);
+
+                //    if (item.status === 1) {
+                //        $result = $result.add(this._createDeleteButton(item));
+                //    }
+
+                //    return $result;
+                //}
             }
         ]
     });
@@ -179,7 +216,7 @@ $(function () {
                 ukprn: parseInt($("#ukprn").val()),
                 fileName: $("#fileName").val(),
                 jobType: parseInt($("#jobType").val()),
-                rowVersion : $("#rowVersion").val()
+                rowVersion: $("#rowVersion").val()
             });
 
         client.jobId = isNaN(client.jobId) ? 0 : client.jobId;
@@ -194,7 +231,7 @@ $(function () {
             //    'Content-Type': 'application/json'
             //},
             //data: JSON.stringify(client)
-        }).complete(function (data) {
+        }).complete(function(data) {
             if (data.status === 200) {
                 client.jobId = isNew ? data.responseJSON : client.jobId;
                 $("#jsGrid").jsGrid(isNew ? "insertItem" : "updateItem", client);
@@ -202,8 +239,7 @@ $(function () {
                 updateStats();
             } else {
                 if (
-                    confirm("Update failed, Job status has been changed. Do you want to refresh the data?"))
-                {
+                    confirm("Update failed, Job status has been changed. Do you want to refresh the data?")) {
                     $("#detailsDialog").dialog("close");
                     $('#jsGrid').jsGrid('loadData');
 
@@ -211,6 +247,54 @@ $(function () {
             }
         });
 
+    };
+    var updateStatusClient = function (item) {
+            var client =
+                {
+                    jobStatus: 1,
+                    jobId: item.jobId,
+                    numberOfLearners:0
+                };
+
+            $.ajax({
+                url: baseApiUrl + "/job/status",
+                dataType: "json",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(client)
+                //headers: {
+                //    'Accept': 'application/json',
+                //    'Content-Type': 'application/json'
+                //},
+                //data: JSON.stringify(client)
+            }).complete(function (data) {
+                if (data.status === 200) {
+                    alert("Job set to ready again.");
+                    $('#jsGrid').jsGrid('loadData');
+                    updateStats();
+                } else {
+                    if (
+                        alert("Update failed, Job status has been changed")) {
+                        $('#jsGrid').jsGrid('loadData');
+                    }
+                }
+            });
+
+        //var deleteJob = deleteJob(item)
+        //{
+        //        var deletedItem = item;
+        //        return $.ajax({
+        //            url: baseApiUrl + "/job/" + item.jobId,
+        //            dataType: "text",
+        //            method: "DELETE",
+        //            success: function (result) {
+        //                if (result === 200)
+        //                    $("#jsGrid").jsGrid("deleteItem", deletedItem);
+        //            },
+        //            error: function (xhr, status) {
+        //                alert('Delete failed, Either job is moved to in progress or job is aunavailable');
+        //            }
+        //        });
     };
 
     

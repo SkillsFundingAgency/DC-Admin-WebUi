@@ -6,5 +6,9 @@ namespace ESFA.DC.Web.Admin.Ui.Settings
     {
         [JsonRequired]
         public string BaseUrl { get; set; }
+
+        public string ServiceFabricUrl { get; set; }
+
+        public string Certificate { get; set; }
     }
 }

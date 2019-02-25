@@ -25,7 +25,7 @@
                 $("#meanProcessTime").html(new Date(arr.mean(times) * 1000).toISOString().substr(11, 8));
                 $("#medianProcessTime").html(new Date(arr.median(times) * 1000).toISOString().substr(11, 8));
             }
-            $("#ilrTotal").html($.grep(data, function (p) { return p.status === 2 && p.jobType === 1; }).length);
+            $("#ilrTotal").html($.grep(data, function (p) { return p.status === 4 && p.jobType === 1; }).length);
             $("#refTotal").html($.grep(data, function (p) { return p.status === 2 && p.jobType === 2; }).length);
             
 
@@ -89,13 +89,13 @@
 //});
 
 
-//$(document).ready(function () {
-//    $.ajax({
-//        url: "http://localhost:2088/api/RetriedJobs",
-//        method: "get",
-//        dataType: "json",
-//        success: function (data) {
-//            $("#retriedTotal").html(data);
-//        }
-//    });
-//});
+$(document).ready(function () {
+    $.ajax({
+        url: "http://localhost:2218/api/job/retried/ILR1819",
+        method: "get",
+        dataType: "json",
+        success: function (data) {
+            $("#retriedTotal").html(data);
+        }
+    });
+});

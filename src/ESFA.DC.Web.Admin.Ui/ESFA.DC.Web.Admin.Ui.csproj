@@ -18,6 +18,10 @@
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.WsFederation" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Azure.Management.ServiceFabric" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ServiceFabric" Version="6.4.638" />
+    <PackageReference Include="Microsoft.ServiceFabric.Client.Http" Version="2.0.0-preview1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.4" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
   </ItemGroup>
 
