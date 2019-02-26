@@ -72,8 +72,10 @@ $(function () {
                 });
             }
         },
-        rowClick: function(args) {
-            showDetailsDialog("Edit", args.item);
+        rowClick: function (args) {
+            //if (!args.id.contains("file_")) {
+               // showDetailsDialog("Edit", args.item);
+            //}
         },
         fields: [
             { name: "jobId", title: "Job Id", type: "text", width: 50, validate: "required" },
@@ -91,10 +93,11 @@ $(function () {
                 //modeSwitchButton: false,
                 editButton: false,
                 itemTemplate: function (value, item) {
-                    var $iconPencil = $("<i>").attr({ class: "glyphicon glyphicon-repeat" });
+                    var $iconRetry = $("<i>").attr({ class: "glyphicon glyphicon-repeat" });
+                    var $iconUpload = $("<i>").attr({ class: "glyphicon glyphicon-upload" });
                     var $iconTrash = $("<i>").attr({ class: "glyphicon glyphicon-trash" });
 
-                    var $customEditButton = $("<button>")
+                    var $retryButton = $("<button>")
                         .attr({ class: "btn btn-default btn-xs" })
                         .attr({ role: "button" })
                         .attr({ title: "Retry" })
@@ -103,7 +106,34 @@ $(function () {
                             updateStatusClient(item);
                             e.stopPropagation();
                         })
-                        .append($iconPencil);
+                        .append($iconRetry);
+
+                    var $fileUpload = $("<input type='file' id='file_"+ item.jobId +"' hidden>")
+                        
+                        .click(function (e) {
+                            e.stopPropagation();
+                            //e.preventDefault();
+                            //e.preventBubble();
+                        })
+                        .change(function (e) {
+                            uploadFileClient(e,item);
+                            //$("file_" + item.jobId).click();
+                            e.stopPropagation();
+                          
+                        })
+
+                    var $uploadButton = $("<button>")
+                        .attr({ class: "btn btn-default btn-xs" })
+                        .attr({ role: "button" })
+                        .attr({ title: "Upload" })
+                        .attr({ id: "btn-edit-" + item.jobId })
+                        .click(function (e) {
+                            //updateStatusClient(item);
+                            $("#file_" + item.jobId)[0].click(e);
+                            //e.stopPropagation();
+                        })
+                        .append($iconUpload);
+
                     var $customDeleteButton = $("<button>")
                         .attr({ class: "btn btn-danger btn-xs" })
                         .attr({ role: "button" })
@@ -117,11 +147,16 @@ $(function () {
 
                     var addedElement = $("<div>").attr({ class: "btn-toolbar" });
 
-                    if (item.status === 5 || item.status === 6 ) {
-                        addedElement.append($customEditButton);
+                    if (item.status === 6 ) {
+                        addedElement.append($retryButton);
                         }
                     if (item.status === 1) {
                         addedElement.append($customDeleteButton);
+                    }
+
+                    if (item.status === 5 || item.status === 6) {
+                        addedElement.append($uploadButton);
+                        addedElement.append($fileUpload);
                     }
 
                     return addedElement;
@@ -280,7 +315,7 @@ $(function () {
                 }
             });
 
-        //var deleteJob = deleteJob(item)
+            //var deleteJob = deleteJob(item)
         //{
         //        var deletedItem = item;
         //        return $.ajax({
@@ -297,6 +332,29 @@ $(function () {
         //        });
     };
 
+
+    var uploadFileClient = function (e, item) {
+       
+        var formData = new FormData();
+        formData.append('file', $('#file_' + item.jobId)[0].files[0]);
+        formData.append('fileName', $('#file_' + item.jobId)[0].files[0].name);
+
+        $.ajax({
+            url: baseApiUrl + "/file-upload/upload/" + item.jobId,
+           // dataType: "json",
+            method: "POST",
+            contentType: false,
+            processData: false,
+            data: formData
+        }).complete(function (data) {
+            if (data.status === 200) {
+                alert("Created new job with Id :" + data.result);
+            } else {
+                alert("New job creation failed...");
+            }
+        });
+
+    };
     
 
     var timeout;
