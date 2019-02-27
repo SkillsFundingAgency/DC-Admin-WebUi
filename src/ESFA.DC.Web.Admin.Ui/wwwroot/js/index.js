@@ -103,12 +103,13 @@ $(function () {
                         .attr({ title: "Retry" })
                         .attr({ id: "btn-edit-" + item.id })
                         .click(function (e) {
-                            updateStatusClient(item);
+                            //setJobToReady(item);
+                            checkLaterFile(e, item);
                             e.stopPropagation();
                         })
                         .append($iconRetry);
 
-                    var $fileUpload = $("<input type='file' id='file_"+ item.jobId +"' hidden>")
+                    var $fileUpload = $("<input type='file' id='file_"+ item.jobId +"' hidden style='display:none'>")
                         
                         .click(function (e) {
                             e.stopPropagation();
@@ -128,7 +129,7 @@ $(function () {
                         .attr({ title: "Upload" })
                         .attr({ id: "btn-edit-" + item.jobId })
                         .click(function (e) {
-                            //updateStatusClient(item);
+                            //setJobToReady(item);
                             $("#file_" + item.jobId)[0].click(e);
                             //e.stopPropagation();
                         })
@@ -283,11 +284,11 @@ $(function () {
         });
 
     };
-    var updateStatusClient = function (item) {
+    var setJobToReady = function (jobId) {
             var client =
                 {
                     jobStatus: 1,
-                    jobId: item.jobId,
+                    jobId: jobId,
                     numberOfLearners:0
                 };
 
@@ -333,6 +334,30 @@ $(function () {
     };
 
 
+    var checkLaterFile = function (e, item) {
+
+        $.ajax({
+            url: baseApiUrl + "/job/" + item.ukprn +"/" + item.collectionName + "/latest",
+            // dataType: "json",
+            method: "GET",
+            contentType: "application/json",
+        }).complete(function (data) {
+            if (data.status === 200) {
+                var existingJob = data.responseJSON;
+                if (existingJob.jobId > item.jobId && existingJob.isFirstStage == 0 &&
+                    (existingJob.status == 1 || existingJob.status == 2 || existingJob.status == 3)) {
+                    if (confirm("There is already a newer job with Id : + " + existingJob.jobId + " set to be processed, Do you still want to set this job for retry?")) {
+                        setJobToReady(item.jobId);
+                    }
+                }
+                
+            } else {
+                alert("New job creation failed...");
+            }
+        });
+
+    };
+
     var uploadFileClient = function (e, item) {
        
         var formData = new FormData();
@@ -348,7 +373,7 @@ $(function () {
             data: formData
         }).complete(function (data) {
             if (data.status === 200) {
-                alert("Created new job with Id :" + data.result);
+                alert("Created new job with Id :" + data.responseText);
             } else {
                 alert("New job creation failed...");
             }
