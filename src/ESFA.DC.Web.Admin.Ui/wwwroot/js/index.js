@@ -38,7 +38,7 @@ $(function () {
         autoload: true,
         onDataLoaded: function (grid) {
             if (grid !== null && grid.data !== null) {
-                updateStats();
+                //updateStats();
             }
             
         },
@@ -50,9 +50,10 @@ $(function () {
         },
       
         controller: {
-            loadData: function(filter) {
+            loadData: function (filter) {
+                var failedOnly = $('#failedOnly').is(":checked");
                 return $.ajax({
-                    url: baseApiUrl + "/job/period/ILR1819",
+                    url: baseApiUrl + "/job/period/ILR1819/" + failedOnly,
                     dataType: "json"
                 });
             },
@@ -398,7 +399,12 @@ $(function () {
         checked = this.checked;
         refresh();
     });
-    
+
+    $('#failedOnly').click(function () {
+        $('#jsGrid').jsGrid('loadData');
+    });
+
+
     function resetTimeout() {
         clearTimeout(timeout);
         timeout = setTimeout(refresh, 3000);
