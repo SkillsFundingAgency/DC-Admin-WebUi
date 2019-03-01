@@ -30,7 +30,7 @@ $(function () {
     $("#jsGrid").jsGrid({
         width: "100%",
         height: "600px",
-
+        //filtering: true,
         inserting: false,
         editing: true,
         sorting: true,
@@ -52,8 +52,13 @@ $(function () {
         controller: {
             loadData: function (filter) {
                 var failedOnly = $('#failedOnly').is(":checked");
+                var ukprnFilter = $('#ukprn').val();
+                var url = baseApiUrl + "/job/period/ILR1819/" + failedOnly;
+                if (ukprnFilter != "") {
+                    url = url + "/" + ukprnFilter;
+                }
                 return $.ajax({
-                    url: baseApiUrl + "/job/period/ILR1819/" + failedOnly,
+                    url: url ,
                     dataType: "json"
                 });
             },
@@ -403,6 +408,9 @@ $(function () {
     $('#failedOnly').click(function () {
         $('#jsGrid').jsGrid('loadData');
     });
+    $('#search').click(function () {
+        $('#jsGrid').jsGrid('loadData');
+    });
 
 
     function resetTimeout() {
@@ -412,17 +420,18 @@ $(function () {
 
 
     $('#pauseQueue').click(function () {
+        var value = this.value == "Pause Queue Processing" ? "false" : "true";
         $.ajax({
-            url: baseApiUrl + "/jobManager",
+            url: baseApiUrl + "/job/processing-override/" + value,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             method: "POST",
-            dataType: "json",
-            data: this.value === "Pause Queue Processing" ? "0" : "1"
+            dataType: "json"
         }).complete(function(data) {
             if (data.status === 200) {
+                alert(value == "false" ? "Queue processing stopped for ILR,EAS and ESF" : "Queue processing started for ILR,EAS and ESF" );
                 $('#pauseQueue').prop("value",
                     $('#pauseQueue').prop("value") === "Start Queue Processing"
                     ? "Pause Queue Processing"
